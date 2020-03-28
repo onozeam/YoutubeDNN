@@ -1,2 +1,9 @@
 memo.md
 todo.md
+ja.bin
+ja.bin.syn0.npy
+ja.bin.syn1neg.npy
+ja.tsv
+ja.zip
+**.pyc
+livedoor_news_corpus/*
