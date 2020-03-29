@@ -41,38 +41,58 @@ class CandidateGeneration(nn.Module):
         return out
 
 
+class BatchIterator:
+    """ dummy dataでbatchを作成する """
+    def __init__(self, embed_item_size, batch_size=100):
+        self.batch_size = batch_size
+        self.i = 0
+        n_user = 10000
+        ages = torch.randint(0, 100, (n_user, 1, 1), dtype=torch.float)  # (n_user, 1, 1)
+        gender = torch.randint(0, 2, (n_user, 1, 1), dtype=torch.float)  # (n_user, 1, 1)
+        self.personal = torch.cat((ages, gender), 1)  # (n_user, n_personal)  # [[age, sex], [age, sex], ...]
+        self.watches = torch.randn(n_user, 1, embed_item_size)  # 視聴した全ての動画の特徴量ベクトルを平均したものと仮定. つまり↓3行のを行ったのと等価.
+        # wathces = [[id, id, id], [id], [id, id], ...]  (n_user,  n_each_watch)
+        # wathces = [[embed_item, embed_item, embed_item], [embed_item], [embed_item, embed_item], ...]  (n_user,  n_each_watch, embed_item)
+        # watches = wathces.mean(0)  (n_user, embed_item)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.i * self.batch_size == len(self.watches):
+            raise StopIteration()
+        watches = self.watches[self.i * self.batch_size: (self.i + 1) * self.batch_size]
+        personal = self.personal[self.i * self.batch_size: (self.i + 1) * self.batch_size]
+        self.i += 1
+        return watches, personal
+
+
 def main():
-    # item_vector = get_item_vector()
-    # user data
-    ## video watches: 各userに対して, 記事IDをランダムに生成して, idに対応するitem_vectorを取得して, ffに通して, avgをとる.
-    ## age, gender: 2次元のベクトルにして, ffに通す.
-    batch_size = 333  # n_userをbatch_sizeに分割する
-    # n_item_feature = 120  # 1記事から使う単語数
-    # embed_feature_size = 100  # 一単語の埋め込みサイズ
+    # data
+    batch_size = 100  # n_userをbatch_sizeに分割する
     embed_item_size = 100  # 一記事を表現するembeddingサイズ
     hidden_size = 1000
     n_item = 1500  # 記事数
-    # dummy data
-    item = torch.randn(n_item, embed_item_size)  # 1記事で全単語をavgしてたと仮定.
-    video_watches = torch.randn(batch_size, 1, embed_item_size)   # 全ての記事の特徴量ベクトルのavgをとったものと仮定
-    ages = torch.randint(0, 100, (batch_size, 1, 1), dtype=torch.float)  # (batch_size, 1, 1)
-    gender = torch.randint(0, 2, (batch_size, 1, 1), dtype=torch.float)  # (batch_size, 1, 1)
-    personal = torch.cat((ages, gender), 1)  # (batch_size, n_personal)
-
+    item = torch.randn(n_item, embed_item_size)  # 1記事で全単語をavgしてたと仮定したdummy data
+    # model
     model = CandidateGeneration(embed_item_size, hidden_size)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, betas=(0.9, 0.98), eps=1e-9)
-    out = model(video_watches, personal, item)
-    print(out.shape)
-    # todo: batchを作る
-    optimizer.zero_grad()
-    train_label = torch.randint(0, 10, (batch_size, n_item))
-    loss = nn.MSELoss(reduction='sum')(out, train_label)  # todo: use sigmoid cross entropy loss
-    print(loss)
-    exit()
-    # loss += 0.001*(avg_n_updates + avg_remainders)
-    # del out, tgt_label
-    # loss.backward()
-    # optimizer.step()
+    epochs = 3
+    # train
+    for epoch in range(epochs):
+        iterator = BatchIterator(embed_item_size, batch_size)
+        total_loss = 0
+        for iter_, (mini_watches, mini_personal) in enumerate(iterator):
+            out = model(mini_watches, mini_personal, item)
+            optimizer.zero_grad()
+            train_label = torch.randint(0, 10, (batch_size, n_item), dtype=torch.float)
+            loss = nn.MSELoss(reduction='sum')(out, train_label)  # todo: use sigmoid cross entropy loss
+            total_loss += loss.item()
+            if iter_ != 0 and iter_ % 10 == 0:
+                print(f'epoch: {epoch}, iter: {iter_}, loss: {total_loss/10}')
+                total_loss = 0
+            loss.backward()
+            optimizer.step()
 
 
 if __name__ == '__main__':
