@@ -12,11 +12,13 @@ import urllib.request
 ## bag of wordを作成 (各単語の出現回数ベクトル)
 ## tf-idfで重み付けして, 上からN個の単語だけ取り出す.
 ## Word2Vecの学修済みモデルで各単語をベクトル化し、平均をとる.
-## todo: 未知語を辞書に追加
-## todo: 文書の特徴表現に, Word2Vecの平均ではなく, SCVDという手法を試す: https://www.m3tech.blog/entry/similarity-with-scdv
+# TODO:
+## - 未知語を辞書に追加
+## - 文書の特徴表現に, Word2Vecの平均ではなく, SCVDという手法を試す: https://www.m3tech.blog/entry/similarity-with-scdv
+## - titleを情報に含める
 
 
-def get_item_vector():
+def get_item_vector(item_size=100):
     print('creating item data...')
     np.random.seed(0)
     text_paths = glob.glob('livedoor_news_corpus/text/**/*.txt')
@@ -54,7 +56,7 @@ def get_item_vector():
         stopwords.remove('')
 
     words_list = []
-    for tp in text_paths[:15]:
+    for tp in text_paths[:item_size]:
         text = open(tp, 'r').read()
         text = text.split('\n')
         # title = text[2]
@@ -83,8 +85,11 @@ def get_item_vector():
     item_vecs = []
     for f in sorted_features:
         item_vecs.append(model[f])
-    return np.asarray(item_vecs)  # todo: titleを情報に含める
+    item_vecs = np.asarray(item_vecs)  # (記事数, 各記事から取得する単語数, 1単語あたりのベクトル長)
+    return item_vecs.mean(1)  # (記事数, 1単語あたりのベクトル長)  # 記事を合成した1つの単語ベクトルで表している
 
 
 if __name__ == '__main__':
-    print(get_item_vector())
+    item = get_item_vector()
+    print(item)
+    print(item.shape)

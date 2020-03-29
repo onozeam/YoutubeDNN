@@ -19,7 +19,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-# from item_data import get_item_vector
+from item_data import get_item_vector
 
 
 class CandidateGeneration(nn.Module):
@@ -72,8 +72,9 @@ def main():
     batch_size = 100  # n_userをbatch_sizeに分割する
     embed_item_size = 100  # 一記事を表現するembeddingサイズ
     hidden_size = 1000
-    n_item = 1500  # 記事数
-    item = torch.randn(n_item, embed_item_size)  # 1記事で全単語をavgしてたと仮定したdummy data
+    n_item = 10  # 全記事数.
+    item = torch.tensor(get_item_vector(n_item))  # 記事データ. shape is (n_item, embed_item_size).
+    embed_item_size = item.size(1)  # 一記事を表現するembeddingサイズ
     # model
     model = CandidateGeneration(embed_item_size, hidden_size)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, betas=(0.9, 0.98), eps=1e-9)
