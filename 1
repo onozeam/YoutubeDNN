@@ -65,8 +65,10 @@ def main():
     print(out.shape)
     # todo: batchを作る
     optimizer.zero_grad()
-    train_label = torch.randint(0, 10, (batch_size, n_item))
-    loss = nn.MSELoss(reduction='sum')(out, train_label)  # todo: use sigmoid cross entropy loss
+    train_label = torch.randint(batch_size, n_item)
+    loss = nn.MSELoss(reduction='sum')  # todo: use sigmoid cross entropy loss
+    loss(out, train_label)
+    # loss = nn.CrossEntropyLoss(ignore_index=0)(out.view(-1, out.size(-1)), tgt_label.view(-1))
     print(loss)
     exit()
     # loss += 0.001*(avg_n_updates + avg_remainders)
