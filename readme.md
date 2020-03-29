@@ -1,5 +1,5 @@
 # Impementation paper "Deep Neural Networks for YouTube Recommendation"
-[paper](https://static.googleusercontent.com/media/research.google.com/ja//pubs/archive/45530.pdf)
+see [paper](https://static.googleusercontent.com/media/research.google.com/ja//pubs/archive/45530.pdf)
 
 ## Usage
 download learned word2vec model from (https://github.com/Kyubyong/wordvectors). and put in project dir, for example
