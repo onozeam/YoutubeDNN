@@ -21,7 +21,7 @@ import urllib.request
 def get_item_vector(item_size=100):
     print('creating item data...')
     np.random.seed(0)
-    text_paths = glob.glob('livedoor_news_corpus/text/**/*.txt')
+    text_paths = glob.glob('text/**/*.txt')
     # print(len(text_paths))  # 7376
     model = gensim.models.Word2Vec.load('ja.bin')
 

@@ -6,4 +6,4 @@ ja.bin.syn1neg.npy
 ja.tsv
 ja.zip
 **.pyc
-livedoor_news_corpus/*
+text/*
