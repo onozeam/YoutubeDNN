@@ -8,3 +8,4 @@ ja.zip
 **.pyc
 text/*
 experiment.ipynb
+.ipynb_checkpoints/*
