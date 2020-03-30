@@ -23,5 +23,5 @@ $ tar xvzf ldcc-20140209.tar.gz
 ```
 train
 ```
-$ python3 main.py
+$ python3 main.py -target_model ['c' or 'r']  # c is trainning candidate model, r is trainnig ranking model
 ```
