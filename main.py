@@ -141,44 +141,43 @@ def main():
     # const
     n_item = 20  # trainingに使用する記事数.
     n_user = 10000
-    batch_size = 100
     batch_size = 100  # n_userをbatch_sizeに分割する
-    ## candidate generation
-    item = torch.tensor(get_item_vector(n_item))  # 記事データ. shape is (n_item, embed_item_size).
-    embed_item_size = item.size(1)  # 一記事を表現するembeddingサイズ
-    candidate_hidden_size = 600  # candidate_modelの隠れ層サイズ
-    candidate_size = 10  # 候補に出す記事数
-    ## ranking
-    watch_time_feature_size = 124
-    ranking_hidden_size = 248
-    candidate_size = 10
 
-    # data
-    ## candidate
-    ages = torch.randint(0, 100, (n_user, 1, 1), dtype=torch.float)  # (n_user, 1, 1)
-    gender = torch.randint(0, 2, (n_user, 1, 1), dtype=torch.float)  # (n_user, 1, 1)
-    personal = torch.cat((ages, gender), 1)  # (n_user, n_personal)  # [[age, sex], [age, sex], ...]
-    watches = torch.randn(n_user, 1, embed_item_size)  # 視聴した全ての動画の特徴量ベクトルを平均したものと仮定. つまり↓3行のを行ったのと等価.
-    """
-    wathces = [[id, id, id], [id], [id, id], ...]  (n_user,  n_each_watch)
-    wathces = [[embed_item, embed_item, embed_item], [embed_item], [embed_item, embed_item], ...]  (n_user,  n_each_watch, embed_item)
-    watches = wathces.mean(0)  (n_user, embed_item)
-    """
-    candidate_train_label = torch.randint(0, 10, (n_user, n_item), dtype=torch.float)  # (user, video) matrix. value is num of clicks.
-    ## ranking
-    watch_time_vector = torch.rand(n_user * n_item, n_item, watch_time_feature_size)
-    real_impression_matrix = torch.randint(3, 9, (n_user * n_item, n_item), dtype=torch.float)
-    real_watch_time_matrix = torch.empty(n_user * n_item, n_item).uniform_(0, 10)
-    ranking_train_label = F.softmax(real_watch_time_matrix / real_impression_matrix, dim=-1)  # (n_user*n_item, n_item)
-
-    # model
-    cmodel = CandidateGeneration(embed_item_size, candidate_hidden_size)
-    cbatch_iter = lambda: CandidateBatchIterator(personal, watches, candidate_train_label, batch_size)  # noqa: E731
-    rmodel = Ranking(watch_time_feature_size, ranking_hidden_size, candidate_size)
-    rbatch_iter = lambda: BatchIterator(watch_time_vector, ranking_train_label, batch_size)  # noqa: E731
+    # candidate generation
     if args.target_model == 'c':
+        # const
+        item = torch.tensor(get_item_vector(n_item))  # 記事データ. shape is (n_item, embed_item_size).
+        embed_item_size = item.size(1)  # 一記事を表現するembeddingサイズ
+        candidate_hidden_size = 600  # candidate_modelの隠れ層サイズ
+        candidate_size = 10  # 候補に出す記事数
+        # data
+        ages = torch.randint(0, 100, (n_user, 1, 1), dtype=torch.float)  # (n_user, 1, 1)
+        gender = torch.randint(0, 2, (n_user, 1, 1), dtype=torch.float)  # (n_user, 1, 1)
+        personal = torch.cat((ages, gender), 1)  # (n_user, n_personal)  # [[age, sex], [age, sex], ...]
+        watches = torch.randn(n_user, 1, embed_item_size)  # 視聴した全ての動画の特徴量ベクトルを平均したものと仮定. つまり↓3行のを行ったのと等価.
+        """
+        wathces = [[id, id, id], [id], [id, id], ...]  (n_user,  n_each_watch)
+        wathces = [[embed_item, embed_item, embed_item], [embed_item], [embed_item, embed_item], ...]  (n_user,  n_each_watch, embed_item)
+        watches = wathces.mean(0)  (n_user, embed_item)
+        """
+        candidate_train_label = torch.randint(0, 10, (n_user, n_item), dtype=torch.float)  # (user, video) matrix. value is num of clicks.
+        cbatch_iter = lambda: CandidateBatchIterator(personal, watches, candidate_train_label, batch_size)  # noqa: E731
+        # model
+        cmodel = CandidateGeneration(embed_item_size, candidate_hidden_size)
         train_candidate_generation(cmodel, cbatch_iter, item, batch_size)
     if args.target_model == 'r':
+        # const
+        watch_time_feature_size = 124
+        ranking_hidden_size = 248
+        candidate_size = 10
+        # data
+        watch_time_vector = torch.rand(n_user * n_item, n_item, watch_time_feature_size)
+        real_impression_matrix = torch.randint(3, 9, (n_user * n_item, n_item), dtype=torch.float)
+        real_watch_time_matrix = torch.empty(n_user * n_item, n_item).uniform_(0, 10)
+        ranking_train_label = F.softmax(real_watch_time_matrix / real_impression_matrix, dim=-1)  # (n_user*n_item, n_item)
+        rbatch_iter = lambda: BatchIterator(watch_time_vector, ranking_train_label, batch_size)  # noqa: E731
+        # model
+        rmodel = Ranking(watch_time_feature_size, ranking_hidden_size, candidate_size)
         train_ranking(rmodel, rbatch_iter, batch_size)
 
 
