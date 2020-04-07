@@ -171,10 +171,12 @@ def main():
         ranking_hidden_size = 248
         candidate_size = 10
         # data
-        watch_time_vector = torch.rand(n_user * n_item, n_item, watch_time_feature_size)
-        real_impression_matrix = torch.randint(3, 9, (n_user * n_item, n_item), dtype=torch.float)
-        real_watch_time_matrix = torch.empty(n_user * n_item, n_item).uniform_(0, 10)
-        ranking_train_label = F.softmax(real_watch_time_matrix / real_impression_matrix, dim=-1)  # (n_user*n_item, n_item)
+        watch_video_vector = torch.randint(0, 10, (n_user * n_item, 1, embed_item_size))  # 候補記事のうち閲覧した記事の特徴ベクトルを平均したものと仮定.
+        target_video_vector = torch.randint(0, 10, (n_user * n_item, 1, embed_item_size))  # 閲覧時間を予測する対象記事の特徴ベクトル
+        video_vector = torch.cat((watch_video_vector, target_video_vector), 1)  # (n_user*n_item, 2, embed_item_size)
+        real_impression_matrix = torch.randint(3, 9, (n_user, n_item), dtype=torch.float)  # (n_user, n_item)
+        real_watch_time_matrix = torch.empty(n_user, n_item).uniform_(0, 10)  # (n_user, n_item)
+        ranking_train_label = F.softmax(real_watch_time_matrix / real_impression_matrix, dim=-1).reshape(-1)  # (n_user*n_item)
         rbatch_iter = lambda: BatchIterator(watch_time_vector, ranking_train_label, batch_size)  # noqa: E731
         # model
         rmodel = Ranking(watch_time_feature_size, ranking_hidden_size, candidate_size)

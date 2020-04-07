@@ -1,5 +1,6 @@
 # Impementation paper "Deep Neural Networks for YouTube Recommendation"
-see [paper](https://static.googleusercontent.com/media/research.google.com/ja//pubs/archive/45530.pdf)
+Paper is [this](https://static.googleusercontent.com/media/research.google.com/ja//pubs/archive/45530.pdf).   
+This code use livedoor_news_corpus instead of youtube movie courpus, because we could not get it.
 
 ## Usage
 download learned word2vec model from (https://github.com/Kyubyong/wordvectors). and put in project dir, for example
@@ -25,3 +26,4 @@ train
 ```
 $ python3 main.py -target_model ['c' or 'r']  # c is trainning candidate model, r is trainnig ranking model
 ```
+
